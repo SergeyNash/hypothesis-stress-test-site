@@ -159,17 +159,16 @@ h1 em, h2 em { color: var(--blue); font-style: normal; }
 .hypothesis-packet span { color: white; font-size: 10px; font-weight: 900; letter-spacing: .12em; }
 .hypothesis-packet b { color: var(--blue); font-size: 8px; }
 .hypothesis-packet i { grid-column: 1 / -1; align-self: end; color: #89afd1; font-size: 7px; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.packet-0 { left: 0; transform: translateX(0); }
-.packet-1 { left: 25%; }
+.packet-0 { left: 10%; }
+.packet-1 { left: 30%; }
 .packet-2 { left: 50%; }
-.packet-3 { left: 75%; border-color: var(--magenta); box-shadow: 0 0 0 4px rgba(255,63,164,.06), 0 14px 30px rgba(0,0,0,.55), 0 0 28px rgba(255,63,164,.18); }
-.packet-4 { left: 100%; transform: translateX(-100%); }
+.packet-3 { left: 70%; border-color: var(--magenta); box-shadow: 0 0 0 4px rgba(255,63,164,.06), 0 14px 30px rgba(0,0,0,.55), 0 0 28px rgba(255,63,164,.18); }
+.packet-4 { left: 90%; }
 
 .flow-gates { display: grid; grid-template-columns: repeat(5, 1fr); position: relative; z-index: 2; }
 .flow-gate { appearance: none; min-height: 100px; padding: 0 13px 10px; border: 0; border-right: 1px solid rgba(29,42,59,.75); background: transparent; cursor: pointer; text-align: left; position: relative; }
 .flow-gate:last-child { border-right: 0; }
-.gate-port { position: absolute; top: -29px; left: 0; width: 18px; height: 18px; border: 1px solid #46566c; background: #080d14; transform: translateX(-50%) rotate(45deg); transition: .25s ease; }
-.flow-gate:last-child .gate-port { left: auto; right: 0; transform: translateX(50%) rotate(45deg); }
+.gate-port { position: absolute; top: -29px; left: 50%; width: 18px; height: 18px; border: 1px solid #46566c; background: #080d14; transform: translateX(-50%) rotate(45deg); transition: .25s ease; }
 .gate-port i { position: absolute; inset: 5px; background: #354359; transition: .25s ease; }
 .flow-gate.active .gate-port { border-color: var(--blue); box-shadow: 0 0 0 4px rgba(65,163,255,.08), 0 0 22px rgba(65,163,255,.5); }
 .flow-gate.active .gate-port i { background: var(--blue); animation: gate-scan .85s ease-in-out infinite alternate; }

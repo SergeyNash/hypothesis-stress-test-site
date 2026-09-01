@@ -8,7 +8,6 @@ import {
   GitFork,
   Radar,
   Search,
-  ShieldAlert,
   Sparkles,
   X,
 } from "lucide-react";
@@ -117,7 +116,7 @@ function Pipeline() {
       <div className="flow-deck">
         <div className="flow-rail" style={{ "--step": step } as CSSProperties}>
           <div className="rail-base" />
-          <div className="rail-progress" style={{ width: `${step * 25}%` }} />
+          <div className="rail-progress" style={{ width: `${10 + step * 20}%` }} />
           <div className="rail-stream" aria-hidden="true">
             {Array.from({ length: 14 }, (_, index) => <i key={index} />)}
           </div>
