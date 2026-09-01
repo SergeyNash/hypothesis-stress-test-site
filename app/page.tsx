@@ -19,37 +19,57 @@ const stations = [
   {
     code: "01 / INTAKE",
     short: "Вход",
-    title: "Гипотеза разобрана на части",
-    text: "Наблюдение, проблема, причина, действие и ожидаемый эффект больше не смешаны в одном абзаце.",
+    operation: "DECOMPOSE",
+    title: "Разобрать утверждение",
+    input: "1 абзац · 5 смыслов смешаны",
+    output: "Карта из 5 полей",
     signal: "5 полей",
+    findings: ["наблюдение", "проблема", "причина", "действие", "эффект"],
+    score: 24,
   },
   {
     code: "02 / ROLES",
     short: "Роли",
-    title: "Пять взглядов спорят с идеей",
-    text: "Пользователь, бизнес, технология, риски и эксплуатация независимо ищут слабые места.",
+    operation: "CHALLENGE",
+    title: "Столкнуть пять взглядов",
+    input: "Карта гипотезы · 5 полей",
+    output: "7 вопросов без ответа",
     signal: "7 вопросов",
+    findings: ["пользователь", "бизнес", "технология", "риски", "эксплуатация"],
+    score: 38,
   },
   {
     code: "03 / EVIDENCE",
     short: "Данные",
-    title: "Утверждения сверены с фактами",
-    text: "Внутренние знания отделены от допущений. Отсутствие данных тоже становится результатом.",
+    operation: "VERIFY",
+    title: "Отделить факты от допущений",
+    input: "7 вопросов · внутренний контекст",
+    output: "2 факта · 3 пробела",
     signal: "3 пробела",
+    findings: ["2 подтверждено", "3 без данных", "1 спорное"],
+    score: 53,
   },
   {
     code: "04 / MARKET",
     short: "Рынок",
-    title: "Внешний мир не подтвердил главный тезис",
-    text: "Снижение production-risk звучит логично, но найденные сигналы его не доказывают.",
+    operation: "COLLIDE",
+    title: "Проверить внешний мир",
+    input: "Главный тезис · 5 сигналов",
+    output: "Тезис не подтверждён",
     signal: "1 конфликт",
+    findings: ["2 слабых сигнала", "1 контрпример", "нет метрики риска"],
+    score: 46,
   },
   {
     code: "05 / SYNTHESIS",
     short: "Решение",
-    title: "Гипотеза стала проверяемой",
-    text: "Ценность смещена к измеримому time-to-action. Понятно, что проверять и кто принимает решение.",
+    operation: "REFRAME",
+    title: "Собрать проверяемую версию",
+    input: "Факты · пробелы · конфликт",
+    output: "Метрика + следующий тест",
     signal: "REFRAME",
+    findings: ["time-to-action", "ручной контроль", "аудит решений"],
+    score: 78,
   },
 ];
 
@@ -89,63 +109,90 @@ function Pipeline() {
       </div>
 
       <div className="input-ticket">
-        <span>СЫРАЯ ГИПОТЕЗА</span>
+        <span>INPUT / СЫРАЯ ГИПОТЕЗА</span>
         <p>«AI‑приоритизация SAST снизит риск пропустить критическую уязвимость»</p>
         <i>UNTESTED</i>
       </div>
 
-      <div className="belt-wrap">
-        <div className="belt">
-          <div className={`cargo cargo-${step}`}>
-            <span>H</span>
-            <i />
+      <div className="flow-deck">
+        <div className="flow-rail" style={{ "--step": step } as CSSProperties}>
+          <div className="rail-base" />
+          <div className="rail-progress" style={{ width: `${step * 25}%` }} />
+          <div className="rail-stream" aria-hidden="true">
+            {Array.from({ length: 14 }, (_, index) => <i key={index} />)}
           </div>
-          <div className="belt-line">
-            <div className="belt-progress" style={{ width: `${step * 25}%` }} />
+          <div className={`hypothesis-packet packet-${step}`}>
+            <span>HYP</span>
+            <b>0{step + 1}</b>
+            <i>{stations[step].signal}</i>
           </div>
-          <div className="belt-teeth" />
-          <div className="stations">
+
+          <div className="flow-gates">
             {stations.map((station, index) => (
               <button
                 type="button"
                 key={station.code}
-                className={index === step ? "active" : index < step ? "passed" : ""}
+                className={`flow-gate ${index === step ? "active" : index < step ? "passed" : ""} ${index === 3 ? "risk" : ""}`}
                 onClick={() => {
                   setStep(index);
                   setRunning(false);
                 }}
                 aria-label={`Открыть этап: ${station.short}`}
               >
+                <span className="gate-port"><i /></span>
                 <span className="station-index">0{index + 1}</span>
                 <b>{station.short}</b>
-                <i>{index < step ? "DONE" : index === step ? "ACTIVE" : "WAIT"}</i>
+                <em>{station.operation}</em>
               </button>
             ))}
           </div>
         </div>
       </div>
 
-      <div className="machine-readout" key={step}>
-        <div className="readout-copy">
+      <div className={`stage-console ${step === 3 ? "has-conflict" : ""}`} key={step}>
+        <div className="console-head">
           <span>{stations[step].code}</span>
-          <h2>{stations[step].title}</h2>
-          <p>{stations[step].text}</p>
+          <b>{stations[step].title}</b>
+          <i>{running ? "PROCESSING" : "INSPECT MODE"}</i>
         </div>
-        <div className="readout-signal">
-          <span>СИГНАЛ ЭТАПА</span>
-          <strong className={step === 3 ? "warning" : ""}>{stations[step].signal}</strong>
-          <div className="mini-chart">
-            {[42, 70, 55, 86, 64, 92].map((height, index) => (
-              <i key={index} style={{ "--h": `${Math.max(16, height - (4 - step) * 8)}%` } as CSSProperties} />
-            ))}
+
+        <div className="console-grid">
+          <div className="console-side console-in">
+            <span>ВХОД НА ЭТАП</span>
+            <strong>{stations[step].input}</strong>
+            <div className="signal-stack" aria-hidden="true">
+              {Array.from({ length: 7 }, (_, index) => (
+                <i key={index} className={index > 4 - Math.min(step, 3) ? "dim" : ""} />
+              ))}
+            </div>
+          </div>
+
+          <div className="console-core">
+            <span>ОПЕРАЦИЯ</span>
+            <div className="operation-core">
+              <div className="core-orbit"><i /><i /><i /></div>
+              <strong>{stations[step].operation}</strong>
+              <small>{stations[step].signal}</small>
+            </div>
+          </div>
+
+          <div className="console-side console-out">
+            <span>ВЫХОД ЭТАПА</span>
+            <strong>{stations[step].output}</strong>
+            <div className="confidence">
+              <div><i style={{ width: `${stations[step].score}%` }} /></div>
+              <small>качество формулировки <b>{stations[step].score}%</b></small>
+            </div>
           </div>
         </div>
-        <div className="readout-log">
-          <span>LIVE LOG</span>
-          <p className={step >= 1 ? "on" : ""}>✓ контекст роли получен</p>
-          <p className={step >= 2 ? "on" : ""}>✓ evidence inventory собран</p>
-          <p className={step >= 3 ? "alert" : ""}>! главный тезис не доказан</p>
-          <p className={step >= 4 ? "on" : ""}>✓ next test сформирован</p>
+
+        <div className="finding-strip">
+          <span>ДОБАВЛЕНО В КОНТЕЙНЕР</span>
+          <div>
+            {stations[step].findings.map((finding, index) => (
+              <i key={finding} className={step === 3 && index > 0 ? "warning" : ""}>{finding}</i>
+            ))}
+          </div>
         </div>
       </div>
 
