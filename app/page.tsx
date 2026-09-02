@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import {
   ArrowRight,
   Check,
@@ -15,34 +14,11 @@ import {
 
 const repo = "https://github.com/SergeyNash/hypothesis-stress-test";
 
-const stations = [
-  {
-    code: "01",
-    title: "Разделить точки зрения",
-    text: "Роли смотрят на одну гипотезу независимо — и находят разные слабые места.",
-  },
-  {
-    code: "02",
-    title: "Найти факты",
-    text: "Утверждения сверяются с внутренними данными. Отсутствие доказательств тоже становится результатом.",
-  },
-  {
-    code: "03",
-    title: "Столкнуть сигналы",
-    text: "Внутренняя логика встречается с рынком. Противоречия не прячутся — они становятся видимыми.",
-  },
-  {
-    code: "04",
-    title: "Собрать результаты",
-    text: "Система формирует уточнённую гипотезу и следующий тест. Решение всё равно остаётся за человеком.",
-  },
-];
-
 function Pipeline() {
   const sectionRef = useRef<HTMLElement>(null);
   const frameRef = useRef<number | null>(null);
   const [progress, setProgress] = useState(0);
-  const [step, setStep] = useState(0);
+  const [focusSource, setFocusSource] = useState<"internal" | "market" | null>(null);
 
   useEffect(() => {
     const update = () => {
@@ -54,7 +30,6 @@ function Pipeline() {
       const distance = Math.max(1, rect.height - window.innerHeight);
       const nextProgress = Math.min(1, Math.max(0, -rect.top / distance));
       setProgress(nextProgress);
-      setStep(Math.min(stations.length - 1, Math.round(nextProgress * (stations.length - 1))));
     };
 
     const requestUpdate = () => {
@@ -72,65 +47,141 @@ function Pipeline() {
     };
   }, []);
 
-  const goToStep = (index: number) => {
-    const section = sectionRef.current;
-    if (!section) return;
-    const sectionTop = window.scrollY + section.getBoundingClientRect().top;
-    const distance = section.offsetHeight - window.innerHeight;
-    window.scrollTo({
-      top: sectionTop + (distance * index) / (stations.length - 1),
-      behavior: "smooth",
-    });
-  };
-
-  const cameraX = 24 - progress * 48;
+  const collision = Math.min(1, Math.max(0, (progress - 0.18) / 0.48));
+  const reveal = Math.min(1, Math.max(0, (progress - 0.58) / 0.3));
+  const leftX = collision * 255;
+  const rightX = collision * -255;
+  const phase = progress < 0.34 ? 0 : progress < 0.7 ? 1 : 2;
+  const phaseCopy = [
+    ["ДВА СИГНАЛА", "Внутренние данные и рынок говорят о гипотезе независимо."],
+    ["СТОЛКНОВЕНИЕ", "Сигналы сходятся. Совпадения усиливают вывод, расхождения создают напряжение."],
+    ["ПРОТИВОРЕЧИЕ НАЙДЕНО", "Внутренние данные обещают рост, а рынок не подтверждает готовность платить."],
+  ][phase];
 
   return (
     <section className="scroll-pipeline" id="pipeline" ref={sectionRef}>
       <div className="scroll-pipeline-sticky">
         <div className="pipeline-space" aria-hidden="true" />
-        <div
-          className="pipeline-camera"
-          style={{ transform: `translate3d(${cameraX}%, 0, 0) scale(1.08)` }}
-        >
-          <Image
-              src="/hypothesis-pipeline.webp"
-            width={1672}
-            height={941}
-            priority
-            alt="Пиксельный конвейер: роли, факты, столкновение сигналов и синтез результата"
-          />
+        <div className="pipeline-stage-copy">
+          <span>03 / 04</span>
+          <h2>Столкнуть сигналы</h2>
+          <p>Не усреднять разные ответы, а показать, где именно гипотеза перестаёт сходиться с реальностью.</p>
         </div>
-        <div className={`pipeline-vignette stage-${step}`} aria-hidden="true" />
-        <div className="pipeline-stage-copy" key={step}>
-          <span>{stations[step].code} / 04</span>
-          <h2>{stations[step].title}</h2>
-          <p>{stations[step].text}</p>
+
+        <div className="signal-stage">
+          <svg
+            className="signal-map"
+            viewBox="0 0 1200 620"
+            role="img"
+            aria-label="Внутренние данные и рыночные сигналы сходятся к гипотезе и выявляют противоречие"
+          >
+            <defs>
+              <pattern id="signal-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#10223a" strokeWidth="1" />
+              </pattern>
+              <filter id="blue-glow" x="-80%" y="-80%" width="260%" height="260%">
+                <feGaussianBlur stdDeviation="8" result="blur" />
+                <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+              </filter>
+              <filter id="pink-glow" x="-80%" y="-80%" width="260%" height="260%">
+                <feGaussianBlur stdDeviation="9" result="blur" />
+                <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+              </filter>
+              <linearGradient id="crystal-fill" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stopColor="#78d8ff" />
+                <stop offset=".48" stopColor="#087ff5" />
+                <stop offset="1" stopColor={reveal > 0.3 ? "#ff3fa4" : "#163d9c"} />
+              </linearGradient>
+            </defs>
+            <rect width="1200" height="620" fill="url(#signal-grid)" opacity=".55" />
+            <path className="signal-rail" d="M80 404 H1120" />
+
+            <g
+              className={`signal-cluster internal ${focusSource === "internal" ? "focused" : ""}`}
+              style={{ transform: `translateX(${leftX}px)` }}
+              tabIndex={0}
+              role="button"
+              aria-label="Подсветить внутренние данные"
+              onPointerEnter={() => setFocusSource("internal")}
+              onPointerLeave={() => setFocusSource(null)}
+              onFocus={() => setFocusSource("internal")}
+              onBlur={() => setFocusSource(null)}
+            >
+              <rect className="signal-terminal" x="86" y="214" width="250" height="142" rx="2" />
+              <text className="signal-kicker" x="110" y="245">ВНУТРЕННИЕ ДАННЫЕ</text>
+              <path className="signal-wave blue" d="M110 300 C135 245 160 350 185 285 S235 255 260 306 S300 330 318 272" />
+              <text className="signal-value" x="110" y="334">рост конверсии +18%</text>
+              <path className="signal-link blue" d="M336 285 H510" strokeDasharray="9 13" strokeDashoffset={-progress * 180} />
+              {[0, 1, 2, 3].map((item) => (
+                <circle key={item} className="signal-particle blue" cx={370 + item * 38} cy="285" r={item === 3 ? 5 : 3} />
+              ))}
+            </g>
+
+            <g
+              className={`signal-cluster market ${focusSource === "market" ? "focused" : ""}`}
+              style={{ transform: `translateX(${rightX}px)` }}
+              tabIndex={0}
+              role="button"
+              aria-label="Подсветить рыночные сигналы"
+              onPointerEnter={() => setFocusSource("market")}
+              onPointerLeave={() => setFocusSource(null)}
+              onFocus={() => setFocusSource("market")}
+              onBlur={() => setFocusSource(null)}
+            >
+              <rect className="signal-terminal" x="864" y="214" width="250" height="142" rx="2" />
+              <text className="signal-kicker pink" x="888" y="245">РЫНОЧНЫЕ СИГНАЛЫ</text>
+              <path className="signal-wave pink" d="M888 294 C915 325 940 252 965 310 S1015 338 1040 282 S1082 258 1092 318" />
+              <text className="signal-value" x="888" y="334">готовность платить не найдена</text>
+              <path className="signal-link pink" d="M690 285 H864" strokeDasharray="9 13" strokeDashoffset={progress * 180} />
+              {[0, 1, 2, 3].map((item) => (
+                <circle key={item} className="signal-particle pink" cx={830 - item * 38} cy="285" r={item === 3 ? 5 : 3} />
+              ))}
+            </g>
+
+            <g className={`hypothesis-core phase-${phase}`} filter={phase > 0 ? "url(#pink-glow)" : "url(#blue-glow)"}>
+              <circle className="core-orbit outer" cx="600" cy="285" r={82 + reveal * 16} />
+              <circle className="core-orbit inner" cx="600" cy="285" r={60} />
+              <path className="crystal" d="M600 205 L652 260 L632 334 L600 366 L568 334 L548 260 Z" fill="url(#crystal-fill)" />
+              <path className="crystal-facet" d="M600 205 L600 366 M548 260 L632 334 M652 260 L568 334" />
+              <path className="conflict-strike" d="M585 238 L610 270 L590 293 L618 328" style={{ opacity: reveal }} />
+            </g>
+
+            <g className="conflict-burst" style={{ opacity: reveal }}>
+              <path d="M600 164 V128 M600 442 V406 M479 285 H443 M757 285 H721 M516 201 L490 175 M710 395 L684 369 M684 201 L710 175 M490 395 L516 369" />
+            </g>
+
+            <g className="signal-output" style={{ opacity: reveal, transform: `translateY(${18 - reveal * 18}px)` }}>
+              <rect x="430" y="477" width="340" height="82" rx="2" />
+              <text className="signal-kicker pink" x="454" y="508">ОБНАРУЖЕН РАЗРЫВ</text>
+              <text className="output-copy" x="454" y="536">ценность подтверждена ≠ спрос подтверждён</text>
+            </g>
+          </svg>
+
+          <button
+            type="button"
+            className={`source-chip internal ${focusSource === "internal" ? "active" : ""}`}
+            onClick={() => setFocusSource(focusSource === "internal" ? null : "internal")}
+          >
+            01 Внутренние данные
+          </button>
+          <button
+            type="button"
+            className={`source-chip market ${focusSource === "market" ? "active" : ""}`}
+            onClick={() => setFocusSource(focusSource === "market" ? null : "market")}
+          >
+            02 Рынок
+          </button>
         </div>
-        <div className="pipeline-input" data-visible={progress < 0.08}>
-          СЫРАЯ ГИПОТЕЗА
-        </div>
-        <div className="pipeline-human" data-visible={progress > 0.9}>
-          <strong>Система не принимает решение</strong>
-          <span>Она помогает его принимать.</span>
+
+        <div className={`signal-phase phase-${phase}`} aria-live="polite">
+          <span>0{phase + 1} / 03</span>
+          <strong>{phaseCopy[0]}</strong>
+          <p>{phaseCopy[1]}</p>
         </div>
         <div className="pipeline-scroll-hint" data-visible={progress < 0.06}>
           <i /> КРУТИТЕ КОЛЕСО
         </div>
-        <nav className="pipeline-step-nav" aria-label="Этапы стресс-теста">
-          {stations.map((station, index) => (
-            <button
-              type="button"
-              key={station.code}
-              className={index === step ? "active" : index < step ? "passed" : ""}
-              onClick={() => goToStep(index)}
-              aria-label={`Перейти к этапу ${station.code}: ${station.title}`}
-            >
-              <span>{station.code}</span>
-              <i />
-            </button>
-          ))}
-        </nav>
+        <div className="signal-progress" aria-hidden="true"><i style={{ width: `${progress * 100}%` }} /></div>
       </div>
     </section>
   );
