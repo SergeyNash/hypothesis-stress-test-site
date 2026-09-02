@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import {
   ArrowRight,
   Check,
@@ -16,194 +17,122 @@ const repo = "https://github.com/SergeyNash/hypothesis-stress-test";
 
 const stations = [
   {
-    code: "01 / INTAKE",
-    short: "Вход",
-    operation: "DECOMPOSE",
-    title: "Разобрать утверждение",
-    input: "1 абзац · 5 смыслов смешаны",
-    output: "Карта из 5 полей",
-    signal: "5 полей",
-    findings: ["наблюдение", "проблема", "причина", "действие", "эффект"],
-    score: 24,
+    code: "01",
+    title: "Разделить точки зрения",
+    text: "Роли смотрят на одну гипотезу независимо — и находят разные слабые места.",
   },
   {
-    code: "02 / ROLES",
-    short: "Роли",
-    operation: "CHALLENGE",
-    title: "Столкнуть пять взглядов",
-    input: "Карта гипотезы · 5 полей",
-    output: "7 вопросов без ответа",
-    signal: "7 вопросов",
-    findings: ["пользователь", "бизнес", "технология", "риски", "эксплуатация"],
-    score: 38,
+    code: "02",
+    title: "Найти факты",
+    text: "Утверждения сверяются с внутренними данными. Отсутствие доказательств тоже становится результатом.",
   },
   {
-    code: "03 / EVIDENCE",
-    short: "Данные",
-    operation: "VERIFY",
-    title: "Отделить факты от допущений",
-    input: "7 вопросов · внутренний контекст",
-    output: "2 факта · 3 пробела",
-    signal: "3 пробела",
-    findings: ["2 подтверждено", "3 без данных", "1 спорное"],
-    score: 53,
+    code: "03",
+    title: "Столкнуть сигналы",
+    text: "Внутренняя логика встречается с рынком. Противоречия не прячутся — они становятся видимыми.",
   },
   {
-    code: "04 / MARKET",
-    short: "Рынок",
-    operation: "COLLIDE",
-    title: "Проверить внешний мир",
-    input: "Главный тезис · 5 сигналов",
-    output: "Тезис не подтверждён",
-    signal: "1 конфликт",
-    findings: ["2 слабых сигнала", "1 контрпример", "нет метрики риска"],
-    score: 46,
-  },
-  {
-    code: "05 / SYNTHESIS",
-    short: "Решение",
-    operation: "REFRAME",
-    title: "Собрать проверяемую версию",
-    input: "Факты · пробелы · конфликт",
-    output: "Метрика + следующий тест",
-    signal: "REFRAME",
-    findings: ["time-to-action", "ручной контроль", "аудит решений"],
-    score: 78,
+    code: "04",
+    title: "Собрать результаты",
+    text: "Система формирует уточнённую гипотезу и следующий тест. Решение всё равно остаётся за человеком.",
   },
 ];
 
 function Pipeline() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const frameRef = useRef<number | null>(null);
+  const [progress, setProgress] = useState(0);
   const [step, setStep] = useState(0);
-  const [running, setRunning] = useState(true);
 
   useEffect(() => {
-    if (!running) return;
-    const timer = window.setInterval(() => {
-      setStep((current) => {
-        if (current === stations.length - 1) {
-          setRunning(false);
-          return current;
-        }
-        return current + 1;
-      });
-    }, 1700);
-    return () => window.clearInterval(timer);
-  }, [running]);
+    const update = () => {
+      frameRef.current = null;
+      const section = sectionRef.current;
+      if (!section) return;
 
-  const restart = () => {
-    setStep(0);
-    setRunning(true);
+      const rect = section.getBoundingClientRect();
+      const distance = Math.max(1, rect.height - window.innerHeight);
+      const nextProgress = Math.min(1, Math.max(0, -rect.top / distance));
+      setProgress(nextProgress);
+      setStep(Math.min(stations.length - 1, Math.round(nextProgress * (stations.length - 1))));
+    };
+
+    const requestUpdate = () => {
+      if (frameRef.current !== null) return;
+      frameRef.current = window.requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener("scroll", requestUpdate, { passive: true });
+    window.addEventListener("resize", requestUpdate);
+    return () => {
+      window.removeEventListener("scroll", requestUpdate);
+      window.removeEventListener("resize", requestUpdate);
+      if (frameRef.current !== null) window.cancelAnimationFrame(frameRef.current);
+    };
+  }, []);
+
+  const goToStep = (index: number) => {
+    const section = sectionRef.current;
+    if (!section) return;
+    const sectionTop = window.scrollY + section.getBoundingClientRect().top;
+    const distance = section.offsetHeight - window.innerHeight;
+    window.scrollTo({
+      top: sectionTop + (distance * index) / (stations.length - 1),
+      behavior: "smooth",
+    });
   };
 
+  const cameraX = 29 - progress * 58;
+
   return (
-    <div className="pipeline-machine" id="pipeline">
-      <div className="machine-head">
-        <div>
-          <span className="machine-dot" />
-          LIVE RUN / HYP-2026-001
+    <section className="scroll-pipeline" id="pipeline" ref={sectionRef}>
+      <div className="scroll-pipeline-sticky">
+        <div className="pipeline-space" aria-hidden="true" />
+        <div
+          className="pipeline-camera"
+          style={{ transform: `translate3d(${cameraX}%, 0, 0) scale(1.34)` }}
+        >
+          <Image
+              src="/hypothesis-pipeline.webp"
+            width={1672}
+            height={941}
+            priority
+            alt="Пиксельный конвейер: роли, факты, столкновение сигналов и синтез результата"
+          />
         </div>
-        <button type="button" onClick={restart}>
-          {running ? "ПРОГОН ИДЁТ" : "ЗАПУСТИТЬ СНОВА"} <span>↻</span>
-        </button>
+        <div className={`pipeline-vignette stage-${step}`} aria-hidden="true" />
+        <div className="pipeline-stage-copy" key={step}>
+          <span>{stations[step].code} / 04</span>
+          <h2>{stations[step].title}</h2>
+          <p>{stations[step].text}</p>
+        </div>
+        <div className="pipeline-input" data-visible={progress < 0.08}>
+          СЫРАЯ ГИПОТЕЗА
+        </div>
+        <div className="pipeline-human" data-visible={progress > 0.9}>
+          <strong>Система не принимает решение</strong>
+          <span>Она помогает его принимать.</span>
+        </div>
+        <div className="pipeline-scroll-hint" data-visible={progress < 0.06}>
+          <i /> КРУТИТЕ КОЛЕСО
+        </div>
+        <nav className="pipeline-step-nav" aria-label="Этапы стресс-теста">
+          {stations.map((station, index) => (
+            <button
+              type="button"
+              key={station.code}
+              className={index === step ? "active" : index < step ? "passed" : ""}
+              onClick={() => goToStep(index)}
+              aria-label={`Перейти к этапу ${station.code}: ${station.title}`}
+            >
+              <span>{station.code}</span>
+              <i />
+            </button>
+          ))}
+        </nav>
       </div>
-
-      <div className="input-ticket">
-        <span>INPUT / СЫРАЯ ГИПОТЕЗА</span>
-        <p>«AI‑приоритизация SAST снизит риск пропустить критическую уязвимость»</p>
-        <i>UNTESTED</i>
-      </div>
-
-      <div className="flow-deck">
-        <div className="flow-rail" style={{ "--step": step } as CSSProperties}>
-          <div className="rail-base" />
-          <div className="rail-progress" style={{ width: `${10 + step * 20}%` }} />
-          <div className="rail-stream" aria-hidden="true">
-            {Array.from({ length: 14 }, (_, index) => <i key={index} />)}
-          </div>
-          <div className={`hypothesis-packet packet-${step}`}>
-            <span>HYP</span>
-            <b>0{step + 1}</b>
-            <i>{stations[step].signal}</i>
-          </div>
-
-          <div className="flow-gates">
-            {stations.map((station, index) => (
-              <button
-                type="button"
-                key={station.code}
-                className={`flow-gate ${index === step ? "active" : index < step ? "passed" : ""} ${index === 3 ? "risk" : ""}`}
-                onClick={() => {
-                  setStep(index);
-                  setRunning(false);
-                }}
-                aria-label={`Открыть этап: ${station.short}`}
-              >
-                <span className="gate-port"><i /></span>
-                <span className="station-index">0{index + 1}</span>
-                <b>{station.short}</b>
-                <em>{station.operation}</em>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className={`stage-console ${step === 3 ? "has-conflict" : ""}`} key={step}>
-        <div className="console-head">
-          <span>{stations[step].code}</span>
-          <b>{stations[step].title}</b>
-          <i>{running ? "PROCESSING" : "INSPECT MODE"}</i>
-        </div>
-
-        <div className="console-grid">
-          <div className="console-side console-in">
-            <span>ВХОД НА ЭТАП</span>
-            <strong>{stations[step].input}</strong>
-            <div className="signal-stack" aria-hidden="true">
-              {Array.from({ length: 7 }, (_, index) => (
-                <i key={index} className={index > 4 - Math.min(step, 3) ? "dim" : ""} />
-              ))}
-            </div>
-          </div>
-
-          <div className="console-core">
-            <span>ОПЕРАЦИЯ</span>
-            <div className="operation-core">
-              <div className="core-orbit"><i /><i /><i /></div>
-              <strong>{stations[step].operation}</strong>
-              <small>{stations[step].signal}</small>
-            </div>
-          </div>
-
-          <div className="console-side console-out">
-            <span>ВЫХОД ЭТАПА</span>
-            <strong>{stations[step].output}</strong>
-            <div className="confidence">
-              <div><i style={{ width: `${stations[step].score}%` }} /></div>
-              <small>качество формулировки <b>{stations[step].score}%</b></small>
-            </div>
-          </div>
-        </div>
-
-        <div className="finding-strip">
-          <span>ДОБАВЛЕНО В КОНТЕЙНЕР</span>
-          <div>
-            {stations[step].findings.map((finding, index) => (
-              <i key={finding} className={step === 3 && index > 0 ? "warning" : ""}>{finding}</i>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className={`output-ticket ${step === 4 ? "revealed" : ""}`}>
-        <div className="output-mark"><Check size={18} /></div>
-        <div>
-          <span>ГИПОТЕЗА ПОСЛЕ СТРЕСС‑ТЕСТА</span>
-          <p>«Гибридная приоритизация сократит time‑to‑action, сохранив ручные исключения и аудит решений»</p>
-        </div>
-        <strong>PROCEED<br />WITH VALIDATION</strong>
-      </div>
-    </div>
+    </section>
   );
 }
 
