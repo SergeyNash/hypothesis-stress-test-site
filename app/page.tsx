@@ -83,7 +83,7 @@ function Pipeline() {
     });
   };
 
-  const cameraX = 29 - progress * 58;
+  const cameraX = 24 - progress * 48;
 
   return (
     <section className="scroll-pipeline" id="pipeline" ref={sectionRef}>
@@ -91,7 +91,7 @@ function Pipeline() {
         <div className="pipeline-space" aria-hidden="true" />
         <div
           className="pipeline-camera"
-          style={{ transform: `translate3d(${cameraX}%, 0, 0) scale(1.34)` }}
+          style={{ transform: `translate3d(${cameraX}%, 0, 0) scale(1.08)` }}
         >
           <Image
               src="/hypothesis-pipeline.webp"

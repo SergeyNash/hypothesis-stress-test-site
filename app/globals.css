@@ -235,7 +235,7 @@ h1 em, h2 em { color: var(--blue); font-style: normal; }
 .pipeline-space { position: absolute; inset: 0; z-index: -2; opacity: .52; background: radial-gradient(circle at 50% 44%, rgba(10,74,143,.12), transparent 34%), linear-gradient(#000 70%, #020716); }
 .pipeline-space::before { content: ""; position: absolute; inset: 0; opacity: .55; background-image: radial-gradient(circle, #17589e 0 1px, transparent 1.7px); background-size: 173px 137px; background-position: 31px 17px; }
 .pipeline-camera { position: absolute; z-index: -1; inset: 7vh 0 auto; width: 100%; height: calc(100svh - 10vh); display: flex; align-items: center; justify-content: center; will-change: transform; transform-origin: center center; transition: transform .08s linear; }
-.pipeline-camera img { display: block; width: min(118vw, 1800px); max-width: none; height: auto; image-rendering: pixelated; filter: saturate(1.06) contrast(1.05); user-select: none; }
+.pipeline-camera img { display: block; width: min(104vw, 1560px); max-width: none; height: auto; image-rendering: pixelated; filter: saturate(1.06) contrast(1.05); user-select: none; }
 .pipeline-vignette { position: absolute; z-index: 1; inset: 0; pointer-events: none; background: linear-gradient(90deg, rgba(0,0,0,.62), transparent 25%, transparent 75%, rgba(0,0,0,.65)), linear-gradient(0deg, rgba(0,0,0,.58), transparent 26%, rgba(0,0,0,.28)); }
 .pipeline-vignette::after { content: ""; position: absolute; left: 50%; top: 49%; width: 28vw; height: 45vh; transform: translate(-50%, -50%); border: 1px solid rgba(54,142,229,.22); box-shadow: inset 0 0 80px rgba(8,127,245,.04), 0 0 80px rgba(8,127,245,.04); opacity: .58; }
 .pipeline-vignette.stage-2::after { border-color: rgba(255,63,164,.36); box-shadow: inset 0 0 80px rgba(255,63,164,.05), 0 0 80px rgba(255,63,164,.06); }
@@ -362,7 +362,7 @@ footer a { display: flex; align-items: center; gap: 7px; color: #a3afbd; }
   .scroll-pipeline { height: 340vh; margin: 0 -18px -34px; }
   .scroll-pipeline-sticky { min-height: 560px; }
   .pipeline-camera { inset: 19vh 0 auto; height: 62vh; }
-  .pipeline-camera img { width: 215vw; }
+  .pipeline-camera img { width: 178vw; }
   .pipeline-stage-copy { top: 72px; left: 22px; right: 22px; max-width: none; }
   .pipeline-stage-copy h2 { font-size: 27px; }
   .pipeline-stage-copy p { max-width: 90%; font-size: 15px; }
