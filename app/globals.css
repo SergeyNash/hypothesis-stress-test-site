@@ -292,6 +292,44 @@ h1 em, h2 em { color: var(--blue); font-style: normal; }
 .evidence-row.missing .verdict-card rect { stroke: #637187; stroke-dasharray: 5 5; }
 .evidence-row.missing .verdict-text { fill: #9aaabd; }
 .evidence-caption { fill: #536d88; font: 700 10px ui-monospace, monospace; letter-spacing: .16em; }
+
+/* Station 03: internal and external signals collide and force a reframe. */
+.reality-pipeline { margin-top: 0; }
+.collision-stage { position: absolute; z-index: 2; left: 50%; top: 50%; width: min(1180px, 94vw); height: min(610px, 76vh); transform: translate(-50%, -43%); }
+.collision-map { width: 100%; height: 100%; overflow: visible; }
+.collision-column-title { fill: #4f759a; font: 700 10px ui-monospace, monospace; letter-spacing: .15em; }
+.collision-column-title.external { fill: #a7628b; }
+.reality-signal { transition: opacity .2s ease, filter .2s ease; }
+.reality-signal.muted { opacity: .25; filter: grayscale(.8); }
+.signal-card { cursor: pointer; outline: none; }
+.signal-card rect { fill: rgba(3,12,24,.96); stroke: #285783; stroke-width: 2; transition: stroke .2s ease, filter .2s ease; }
+.reality-signal.pink .signal-card rect { stroke: rgba(255,63,164,.62); }
+.reality-signal.neutral .signal-card rect { stroke: #526579; stroke-dasharray: 5 5; }
+.signal-card:hover rect, .signal-card:focus-visible rect, .reality-signal.active .signal-card rect { stroke-width: 3; filter: drop-shadow(0 0 12px rgba(65,163,255,.42)); }
+.reality-signal.pink .signal-card:hover rect, .reality-signal.pink .signal-card:focus-visible rect, .reality-signal.pink.active .signal-card rect { filter: drop-shadow(0 0 12px rgba(255,63,164,.42)); }
+.reality-label { fill: #58adf7; font: 700 10px ui-monospace, monospace; letter-spacing: .1em; }
+.reality-signal.pink .reality-label { fill: var(--magenta); }
+.reality-signal.neutral .reality-label { fill: #8da0b4; }
+.reality-value { fill: #e3effa; font: 14px Arial, sans-serif; }
+.collision-link { fill: none; stroke: #3288cd; stroke-width: 2; transition: stroke-dashoffset .08s linear; }
+.reality-signal.pink .collision-link { stroke: var(--magenta); }
+.reality-signal.neutral .collision-link { stroke: #64788e; stroke-dasharray: .03 .025; }
+.collision-packet { fill: var(--blue); filter: url(#collision-blue-glow); }
+.reality-signal.pink .collision-packet { fill: var(--magenta); filter: url(#collision-pink-glow); }
+.reality-signal.neutral .collision-packet { fill: #91a3b6; filter: none; }
+.collision-reactor { transform-box: fill-box; transform-origin: center; transition: transform .08s linear; }
+.reactor-orbit { fill: none; stroke: rgba(65,163,255,.5); stroke-width: 2; stroke-dasharray: 9 13; transform-origin: 600px 330px; animation: orbit-spin 8s linear infinite; }
+.reactor-orbit.inner { stroke: rgba(255,63,164,.45); stroke-dasharray: 4 9; animation-duration: 5s; animation-direction: reverse; }
+.collision-reactor.phase-1 .reactor-orbit { stroke-width: 3; animation-duration: 1.8s; }
+.reactor-crystal { stroke: #d9f3ff; stroke-width: 2; filter: url(#collision-blue-glow); }
+.collision-reactor.phase-1 .reactor-crystal { filter: url(#collision-pink-glow); animation: collision-shake .15s steps(2) infinite; transform-origin: 600px 330px; }
+.reactor-facet { fill: none; stroke: rgba(255,255,255,.62); stroke-width: 1.5; }
+.collision-flare path { fill: none; stroke: var(--magenta); stroke-width: 4; stroke-linecap: square; filter: url(#collision-pink-glow); animation: flare-pulse 1s ease-out infinite; transform-origin: 600px 330px; }
+@keyframes flare-pulse { 50% { transform: scale(1.12); opacity: .28; } }
+.reframe-output { transform-box: fill-box; transform-origin: center; transition: opacity .14s linear, transform .14s linear; }
+.reframe-output rect { fill: rgba(11,3,13,.96); stroke: rgba(255,63,164,.78); stroke-width: 2; filter: drop-shadow(0 0 18px rgba(255,63,164,.18)); }
+.reframe-kicker { fill: var(--magenta); font: 700 11px ui-monospace, monospace; letter-spacing: .11em; }
+.reframe-copy { fill: #fff; font: 700 17px Arial, sans-serif; }
 .signal-rail { fill: none; stroke: #173554; stroke-width: 2; }
 .signal-cluster { transform-box: fill-box; transform-origin: center; transition: filter .22s ease, opacity .22s ease; outline: none; cursor: crosshair; }
 .signal-stage:has(.signal-cluster.focused) .signal-cluster:not(.focused) { opacity: .3; filter: grayscale(.65); }
@@ -452,6 +490,7 @@ footer a { display: flex; align-items: center; gap: 7px; color: #a3afbd; }
   .pipeline-stage-copy p { max-width: 94%; font-size: 14px; }
   .signal-stage, .perspective-stage { top: 55%; width: 154vw; height: 58vh; transform: translate(-50%, -35%); }
   .evidence-stage { top: 55%; width: 164vw; height: 60vh; transform: translate(-50%, -34%); }
+  .collision-stage { top: 55%; width: 166vw; height: 60vh; transform: translate(-50%, -34%); }
   .signal-phase { top: auto; left: 22px; right: 22px; bottom: 58px; width: auto; padding: 13px 15px; }
   .signal-phase p { font-size: 13px; }
   .source-chip { bottom: 5%; min-height: 34px; padding: 0 9px; font-size: 9px; }

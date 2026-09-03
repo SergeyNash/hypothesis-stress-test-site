@@ -294,6 +294,144 @@ function EvidenceStation() {
   );
 }
 
+const realitySignals = [
+  { id: "interviews", side: "internal", label: "ИНТЕРВЬЮ", value: "Важна скорость реакции", x: 74, y: 220, tone: "blue" },
+  { id: "metrics", side: "internal", label: "МЕТРИКИ", value: "Частота риска неизвестна", x: 74, y: 330, tone: "neutral" },
+  { id: "team", side: "internal", label: "КОМАНДА", value: "Ручная проверка медленна", x: 74, y: 440, tone: "blue" },
+  { id: "market", side: "external", label: "РЫНОК", value: "Снижение риска не доказано", x: 876, y: 220, tone: "pink" },
+  { id: "competitors", side: "external", label: "КОНКУРЕНТЫ", value: "Обещают приоритизацию", x: 876, y: 330, tone: "pink" },
+  { id: "buyers", side: "external", label: "КЛИЕНТЫ", value: "Платят за скорость реакции", x: 876, y: 440, tone: "blue" },
+] as const;
+
+function RealityCollisionStation() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const frameRef = useRef<number | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [activeSignal, setActiveSignal] = useState<string | null>(null);
+
+  useEffect(() => {
+    const update = () => {
+      frameRef.current = null;
+      const section = sectionRef.current;
+      if (!section) return;
+      const rect = section.getBoundingClientRect();
+      const distance = Math.max(1, rect.height - window.innerHeight);
+      setProgress(Math.min(1, Math.max(0, -rect.top / distance)));
+    };
+    const requestUpdate = () => {
+      if (frameRef.current !== null) return;
+      frameRef.current = window.requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", requestUpdate, { passive: true });
+    window.addEventListener("resize", requestUpdate);
+    return () => {
+      window.removeEventListener("scroll", requestUpdate);
+      window.removeEventListener("resize", requestUpdate);
+      if (frameRef.current !== null) window.cancelAnimationFrame(frameRef.current);
+    };
+  }, []);
+
+  const approach = Math.min(1, progress / .42);
+  const collision = Math.min(1, Math.max(0, (progress - .3) / .38));
+  const reframe = Math.min(1, Math.max(0, (progress - .62) / .28));
+  const phase = progress < .32 ? 0 : progress < .68 ? 1 : 2;
+  const selected = realitySignals.find((signal) => signal.id === activeSignal);
+  const phaseCopy = [
+    ["ДВА КОНТУРА", "Внутренние выводы и внешний мир входят в проверку независимо."],
+    ["КОНФЛИКТ", "Сигналы сталкиваются: обещание о снижении риска не получает подтверждения."],
+    ["НОВАЯ ЦЕННОСТЬ", "Гипотеза меняется: фокус смещается на измеримую скорость реакции."],
+  ][phase];
+
+  return (
+    <section className="scroll-pipeline reality-pipeline" id="reality" ref={sectionRef}>
+      <div className="scroll-pipeline-sticky">
+        <div className="pipeline-space" aria-hidden="true" />
+        <div className="pipeline-stage-copy">
+          <span>03 / 04</span>
+          <h2>Столкнуть с реальностью</h2>
+          <p>Внутренние выводы встречаются с рынком. Противоречие становится причиной изменить гипотезу.</p>
+        </div>
+
+        <div className="collision-stage">
+          <svg className="collision-map" viewBox="0 0 1200 620" role="img" aria-label="Внутренние и внешние сигналы сталкиваются и меняют гипотезу">
+            <defs>
+              <pattern id="collision-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#10223a" strokeWidth="1" />
+              </pattern>
+              <filter id="collision-blue-glow" x="-80%" y="-80%" width="260%" height="260%">
+                <feGaussianBlur stdDeviation="8" result="blur" /><feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+              </filter>
+              <filter id="collision-pink-glow" x="-80%" y="-80%" width="260%" height="260%">
+                <feGaussianBlur stdDeviation="9" result="blur" /><feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+              </filter>
+              <linearGradient id="collision-core" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stopColor="#65c8ff" /><stop offset=".48" stopColor={collision > .45 ? "#fff" : "#087ff5"} /><stop offset="1" stopColor={collision > .2 ? "#ff3fa4" : "#173d9c"} />
+              </linearGradient>
+            </defs>
+            <rect width="1200" height="620" fill="url(#collision-grid)" opacity=".55" />
+            <text className="collision-column-title" x="82" y="176">ВНУТРЕННИЕ СИГНАЛЫ</text>
+            <text className="collision-column-title external" x="884" y="176">ВНЕШНИЕ СИГНАЛЫ</text>
+
+            {realitySignals.map((signal) => {
+              const isLeft = signal.side === "internal";
+              const startX = isLeft ? signal.x + 250 : signal.x;
+              const endX = 600;
+              const startY = signal.y;
+              const isActive = activeSignal === signal.id;
+              return (
+                <g key={signal.id} className={`reality-signal ${signal.tone} ${isActive ? "active" : activeSignal ? "muted" : ""}`}>
+                  <path className="collision-link" d={`M${startX} ${startY} L${endX} 330`} pathLength="1" strokeDasharray="1" strokeDashoffset={1 - approach} />
+                  <circle className="collision-packet" cx={startX + (endX - startX) * approach} cy={startY + (330 - startY) * approach} r="5" style={{ opacity: approach }} />
+                  <g
+                    className="signal-card"
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`${signal.label}: ${signal.value}`}
+                    onPointerEnter={() => setActiveSignal(signal.id)}
+                    onPointerLeave={() => setActiveSignal(null)}
+                    onFocus={() => setActiveSignal(signal.id)}
+                    onBlur={() => setActiveSignal(null)}
+                    onClick={() => setActiveSignal(activeSignal === signal.id ? null : signal.id)}
+                  >
+                    <rect x={signal.x} y={signal.y - 31} width="250" height="62" rx="2" />
+                    <text className="reality-label" x={signal.x + 17} y={signal.y - 8}>{signal.label}</text>
+                    <text className="reality-value" x={signal.x + 17} y={signal.y + 16}>{signal.value}</text>
+                  </g>
+                </g>
+              );
+            })}
+
+            <g className={`collision-reactor phase-${phase}`} style={{ transform: `scale(${.86 + collision * .14})` }}>
+              <circle className="reactor-orbit outer" cx="600" cy="330" r="92" />
+              <circle className="reactor-orbit inner" cx="600" cy="330" r="69" />
+              <path className="reactor-crystal" d="M600 267 L649 307 L632 368 L600 397 L568 368 L551 307 Z" fill="url(#collision-core)" />
+              <path className="reactor-facet" d="M600 267 L600 397 M551 307 L632 368 M649 307 L568 368" />
+              <g className="collision-flare" style={{ opacity: collision }}>
+                <path d="M600 226 V255 M600 405 V434 M496 330 H532 M668 330 H704 M527 257 L549 279 M651 381 L673 403 M527 403 L550 380 M650 279 L674 255" />
+              </g>
+            </g>
+
+            <g className="reframe-output" style={{ opacity: reframe, transform: `translateY(${18 - reframe * 18}px)` }}>
+              <rect x="370" y="492" width="460" height="88" rx="2" />
+              <text className="reframe-kicker" x="396" y="522">ГИПОТЕЗА ПЕРЕФОРМУЛИРОВАНА</text>
+              <text className="reframe-copy" x="396" y="550">Снизить риск → сократить time-to-action</text>
+            </g>
+          </svg>
+        </div>
+
+        <div className={`signal-phase phase-${phase}`} aria-live="polite">
+          <span>0{phase + 1} / 03</span>
+          <strong>{phaseCopy[0]}</strong>
+          <p>{selected ? `${selected.label}: ${selected.value}.` : phaseCopy[1]}</p>
+        </div>
+        <div className="pipeline-scroll-hint" data-visible={progress < .06}><i /> КРУТИТЕ КОЛЕСО</div>
+        <div className="signal-progress" aria-hidden="true"><i style={{ width: `${progress * 100}%` }} /></div>
+      </div>
+    </section>
+  );
+}
+
 export default function Home() {
   return (
     <main>
@@ -331,6 +469,7 @@ export default function Home() {
         </div>
         <Pipeline />
         <EvidenceStation />
+        <RealityCollisionStation />
       </section>
 
       <section className="result grid-shell" id="result">
