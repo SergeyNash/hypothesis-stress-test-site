@@ -57,10 +57,10 @@ function Pipeline() {
     ["КАРТА СЛАБЫХ МЕСТ", "Вместо одного общего мнения появляются конкретные точки проверки."],
   ][phase];
   const roles = [
-    { id: "user", code: "01", title: "Пользователь", finding: "Ценность не доказана", x: 112, y: 112, anchorX: 292, anchorY: 157 },
-    { id: "business", code: "02", title: "Бизнес", finding: "Экономика не сходится", x: 908, y: 112, anchorX: 908, anchorY: 157 },
-    { id: "tech", code: "03", title: "Реализация", finding: "Критичная зависимость", x: 112, y: 408, anchorX: 292, anchorY: 453 },
-    { id: "risk", code: "04", title: "Риски", finding: "Нет критерия отказа", x: 908, y: 408, anchorX: 908, anchorY: 453 },
+    { id: "user", code: "01", title: "Пользователь", finding: "Ценность не доказана", x: 112, y: 112, anchorX: 292, anchorY: 157, mx: 18, my: 292 },
+    { id: "business", code: "02", title: "Бизнес", finding: "Экономика не сходится", x: 908, y: 112, anchorX: 908, anchorY: 157, mx: 212, my: 292 },
+    { id: "tech", code: "03", title: "Реализация", finding: "Критичная зависимость", x: 112, y: 408, anchorX: 292, anchorY: 453, mx: 18, my: 400 },
+    { id: "risk", code: "04", title: "Риски", finding: "Нет критерия отказа", x: 908, y: 408, anchorX: 908, anchorY: 453, mx: 212, my: 400 },
   ] as const;
   const selectedRole = roles.find((role) => role.id === activeRole);
   const crystalX = 145 + arrival * 455;
@@ -75,7 +75,7 @@ function Pipeline() {
           <p>Одна гипотеза получает четыре независимых разбора — без преждевременного общего мнения.</p>
         </div>
 
-        <div className="perspective-stage">
+        <div className="perspective-stage desktop-visual">
           <svg
             className="perspective-map"
             viewBox="0 0 1200 620"
@@ -153,6 +153,43 @@ function Pipeline() {
           </svg>
         </div>
 
+        <div className="mobile-stage mobile-perspective-stage">
+          <svg className="mobile-map" viewBox="0 0 390 610" role="img" aria-label="Гипотеза разделяется на четыре точки зрения сверху вниз">
+            <path className="mobile-flow-line" d="M195 42 V248" />
+            <text className="mobile-svg-kicker" x="195" y="28" textAnchor="middle">СЫРАЯ ГИПОТЕЗА</text>
+            <g className="mobile-crystal" style={{ transform: `translateY(${arrival * 150}px)` }}>
+              <path d="M195 55 L222 78 L212 114 L195 132 L178 114 L168 78 Z" />
+              <text x="195" y="99" textAnchor="middle">H</text>
+            </g>
+            {roles.map((role) => {
+              const targetX = role.mx < 100 ? role.mx + 80 : role.mx + 80;
+              const targetY = role.my;
+              return (
+                <g key={role.id} className={`mobile-role ${activeRole === role.id ? "active" : activeRole ? "muted" : ""}`} style={{ opacity: Math.max(.16, split) }}>
+                  <path className="mobile-split-link" d={`M195 242 L${targetX} ${targetY}`} pathLength="1" strokeDasharray="1" strokeDashoffset={1 - split} />
+                  <g
+                    tabIndex={0}
+                    role="button"
+                    onClick={() => setActiveRole(activeRole === role.id ? null : role.id)}
+                    onFocus={() => setActiveRole(role.id)}
+                    onBlur={() => setActiveRole(null)}
+                  >
+                    <rect x={role.mx} y={role.my} width="160" height="82" rx="2" />
+                    <text className="mobile-role-code" x={role.mx + 14} y={role.my + 22}>{role.code}</text>
+                    <text className="mobile-role-title" x={role.mx + 14} y={role.my + 44}>{role.title}</text>
+                    <text className="mobile-role-finding" x={role.mx + 14} y={role.my + 66} style={{ opacity: reveal }}>{role.finding}</text>
+                  </g>
+                </g>
+              );
+            })}
+            <g className="mobile-summary" style={{ opacity: reveal }}>
+              <rect x="57" y="510" width="276" height="60" rx="2" />
+              <text x="195" y="537" textAnchor="middle">4 ТОЧКИ ПРОВЕРКИ</text>
+              <text className="mobile-summary-note" x="195" y="558" textAnchor="middle">четыре независимых разбора</text>
+            </g>
+          </svg>
+        </div>
+
         <div className={`signal-phase phase-${phase}`} aria-live="polite">
           <span>0{phase + 1} / 03</span>
           <strong>{phaseCopy[0]}</strong>
@@ -224,7 +261,7 @@ function EvidenceStation() {
           <p>Каждое утверждение проходит через источник данных и получает отдельный статус.</p>
         </div>
 
-        <div className="evidence-stage">
+        <div className="evidence-stage desktop-visual">
           <svg className="evidence-map" viewBox="0 0 1200 620" role="img" aria-label="Утверждения проходят через сканер фактов">
             <defs>
               <pattern id="evidence-grid" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -282,6 +319,44 @@ function EvidenceStation() {
           </svg>
         </div>
 
+        <div className="mobile-stage mobile-evidence-stage">
+          <svg className="mobile-map" viewBox="0 0 390 640" role="img" aria-label="Утверждения последовательно проходят через вертикальный сканер фактов">
+            <text className="mobile-svg-kicker" x="18" y="34">УТВЕРЖДЕНИЯ</text>
+            <text className="mobile-svg-kicker right" x="372" y="34" textAnchor="end">ВЕРДИКТЫ</text>
+            <g className="mobile-scanner" style={{ opacity: .35 + scan * .65 }}>
+              <rect x="178" y="54" width="34" height="504" rx="3" />
+              <line x1="195" y1="70" x2="195" y2="542" />
+              <rect className="mobile-scan-beam" x="169" y={82 + scan * 438} width="52" height="3" />
+            </g>
+            {evidenceRows.map((row, index) => {
+              const y = 116 + index * 116;
+              return (
+                <g key={row.id} className={`mobile-evidence-row ${row.tone} ${activeRow === row.id ? "active" : activeRow ? "muted" : ""}`}>
+                  <g
+                    className="mobile-evidence-card claim"
+                    tabIndex={0}
+                    role="button"
+                    onClick={() => setActiveRow(activeRow === row.id ? null : row.id)}
+                    onFocus={() => setActiveRow(row.id)}
+                    onBlur={() => setActiveRow(null)}
+                    style={{ transform: `translateX(${feed * 8}px)` }}
+                  >
+                    <rect x="14" y={y} width="154" height="80" rx="2" />
+                    <text className="mobile-card-kicker" x="27" y={y + 23}>{row.role}</text>
+                    <text className="mobile-card-copy" x="27" y={y + 48}>{row.claim}</text>
+                  </g>
+                  <path className="mobile-evidence-link" d={`M168 ${y + 40} H222`} pathLength="1" strokeDasharray="1" strokeDashoffset={1 - reveal} />
+                  <g className="mobile-evidence-card verdict" style={{ opacity: reveal, transform: `translateX(${12 - reveal * 12}px)` }}>
+                    <rect x="222" y={y} width="154" height="80" rx="2" />
+                    <text className="mobile-card-source" x="235" y={y + 24}>{row.source}</text>
+                    <text className="mobile-card-result" x="235" y={y + 51}>{row.result}</text>
+                  </g>
+                </g>
+              );
+            })}
+          </svg>
+        </div>
+
         <div className={`signal-phase phase-${phase}`} aria-live="polite">
           <span>0{phase + 1} / 03</span>
           <strong>{phaseCopy[0]}</strong>
@@ -295,12 +370,12 @@ function EvidenceStation() {
 }
 
 const realitySignals = [
-  { id: "interviews", side: "internal", label: "ИНТЕРВЬЮ", value: "Важна скорость реакции", x: 74, y: 220, tone: "blue" },
-  { id: "metrics", side: "internal", label: "МЕТРИКИ", value: "Частота риска неизвестна", x: 74, y: 330, tone: "neutral" },
-  { id: "team", side: "internal", label: "КОМАНДА", value: "Ручная проверка медленна", x: 74, y: 440, tone: "blue" },
-  { id: "market", side: "external", label: "РЫНОК", value: "Снижение риска не доказано", x: 876, y: 220, tone: "pink" },
-  { id: "competitors", side: "external", label: "КОНКУРЕНТЫ", value: "Обещают приоритизацию", x: 876, y: 330, tone: "pink" },
-  { id: "buyers", side: "external", label: "КЛИЕНТЫ", value: "Платят за скорость реакции", x: 876, y: 440, tone: "blue" },
+  { id: "interviews", side: "internal", label: "ИНТЕРВЬЮ", value: "Важна скорость реакции", mobileValue: "Важна скорость", x: 74, y: 220, tone: "blue" },
+  { id: "metrics", side: "internal", label: "МЕТРИКИ", value: "Частота риска неизвестна", mobileValue: "Частота неизвестна", x: 74, y: 330, tone: "neutral" },
+  { id: "team", side: "internal", label: "КОМАНДА", value: "Ручная проверка медленна", mobileValue: "Проверка медленна", x: 74, y: 440, tone: "blue" },
+  { id: "market", side: "external", label: "РЫНОК", value: "Снижение риска не доказано", mobileValue: "Риск не доказан", x: 876, y: 220, tone: "pink" },
+  { id: "competitors", side: "external", label: "КОНКУРЕНТЫ", value: "Обещают приоритизацию", mobileValue: "То же обещание", x: 876, y: 330, tone: "pink" },
+  { id: "buyers", side: "external", label: "КЛИЕНТЫ", value: "Платят за скорость реакции", mobileValue: "Платят за скорость", x: 876, y: 440, tone: "blue" },
 ] as const;
 
 function RealityCollisionStation() {
@@ -353,7 +428,7 @@ function RealityCollisionStation() {
           <p>Внутренние выводы встречаются с рынком. Противоречие становится причиной изменить гипотезу.</p>
         </div>
 
-        <div className="collision-stage">
+        <div className="collision-stage desktop-visual">
           <svg className="collision-map" viewBox="0 0 1200 620" role="img" aria-label="Внутренние и внешние сигналы сталкиваются и меняют гипотезу">
             <defs>
               <pattern id="collision-grid" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -416,6 +491,48 @@ function RealityCollisionStation() {
               <rect x="370" y="492" width="460" height="88" rx="2" />
               <text className="reframe-kicker" x="396" y="522">ГИПОТЕЗА ПЕРЕФОРМУЛИРОВАНА</text>
               <text className="reframe-copy" x="396" y="550">Снизить риск → сократить time-to-action</text>
+            </g>
+          </svg>
+        </div>
+
+        <div className="mobile-stage mobile-collision-stage">
+          <svg className="mobile-map" viewBox="0 0 390 650" role="img" aria-label="Внутренние и внешние сигналы сталкиваются в центре экрана">
+            <text className="mobile-svg-kicker" x="14" y="34">ВНУТРИ</text>
+            <text className="mobile-svg-kicker pink" x="376" y="34" textAnchor="end">СНАРУЖИ</text>
+            {realitySignals.map((signal) => {
+              const sideSignals = realitySignals.filter((item) => item.side === signal.side);
+              const row = sideSignals.findIndex((item) => item.id === signal.id);
+              const x = signal.side === "internal" ? 14 : 208;
+              const y = 70 + row * 106;
+              const anchorX = signal.side === "internal" ? 172 : 208;
+              return (
+                <g key={signal.id} className={`mobile-reality-signal ${signal.tone} ${activeSignal === signal.id ? "active" : activeSignal ? "muted" : ""}`}>
+                  <path className="mobile-collision-link" d={`M${anchorX} ${y + 38} L195 438`} pathLength="1" strokeDasharray="1" strokeDashoffset={1 - approach} />
+                  <g
+                    className="mobile-signal-card"
+                    tabIndex={0}
+                    role="button"
+                    onClick={() => setActiveSignal(activeSignal === signal.id ? null : signal.id)}
+                    onFocus={() => setActiveSignal(signal.id)}
+                    onBlur={() => setActiveSignal(null)}
+                  >
+                    <rect x={x} y={y} width="168" height="76" rx="2" />
+                    <text className="mobile-card-kicker" x={x + 13} y={y + 24}>{signal.label}</text>
+                    <text className="mobile-card-copy" x={x + 13} y={y + 50}>{signal.mobileValue}</text>
+                  </g>
+                </g>
+              );
+            })}
+            <g className={`mobile-reactor phase-${phase}`} style={{ transform: `scale(${.86 + collision * .14})` }}>
+              <circle className="mobile-reactor-orbit" cx="195" cy="438" r="59" />
+              <circle className="mobile-reactor-orbit inner" cx="195" cy="438" r="43" />
+              <path className="mobile-reactor-crystal" d="M195 393 L230 422 L218 464 L195 484 L172 464 L160 422 Z" />
+              <path className="mobile-reactor-flare" d="M195 360 V382 M195 494 V516 M117 438 H146 M244 438 H273" style={{ opacity: collision }} />
+            </g>
+            <g className="mobile-reframe" style={{ opacity: reframe, transform: `translateY(${12 - reframe * 12}px)` }}>
+              <rect x="20" y="535" width="350" height="82" rx="2" />
+              <text x="195" y="564" textAnchor="middle">ГИПОТЕЗА ИЗМЕНЕНА</text>
+              <text className="mobile-reframe-copy" x="195" y="590" textAnchor="middle">Риск → скорость реакции</text>
             </g>
           </svg>
         </div>
@@ -492,7 +609,7 @@ function HumanGateStation() {
           <p>Система готовит варианты и основания. Человек выбирает, что делать с гипотезой дальше.</p>
         </div>
 
-        <div className="human-gate-stage">
+        <div className="human-gate-stage desktop-visual">
           <svg className="human-gate-map" viewBox="0 0 1200 650" role="img" aria-label="Человек выбирает следующий шаг для проверенной гипотезы">
             <defs>
               <pattern id="human-grid" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -562,6 +679,59 @@ function HumanGateStation() {
               <text className="output-kicker" x="904" y="568">ПАКЕТ ПРОВЕРКИ</text>
               <text className="output-result" x="904" y="593">7 вопросов · 3 риска</text>
               <text className="output-result" x="904" y="614">1 следующий шаг</text>
+            </g>
+          </svg>
+        </div>
+
+        <div className="mobile-stage mobile-human-gate-stage">
+          <svg className="mobile-map" viewBox="0 0 390 700" role="img" aria-label="Вертикальный выбор следующего шага человеком">
+            <text className="mobile-svg-kicker" x="195" y="27" textAnchor="middle">ПАКЕТ РЕШЕНИЯ</text>
+            <g className="mobile-decision-core" style={{ opacity: Math.max(.24, intake) }}>
+              <rect x="111" y="45" width="168" height="104" rx="3" />
+              <text className="mobile-card-kicker" x="195" y="74" textAnchor="middle">DECISION CORE</text>
+              <text className="mobile-core-number" x="195" y="112" textAnchor="middle">3 → 1</text>
+              <text className="mobile-core-note" x="195" y="135" textAnchor="middle">сигналы → решение</text>
+            </g>
+            <g className="mobile-decision-facts" style={{ opacity: routes }}>
+              <rect x="15" y="170" width="110" height="42" rx="2" /><text x="70" y="196" textAnchor="middle">4 ВЗГЛЯДА</text>
+              <rect x="140" y="170" width="110" height="42" rx="2" /><text x="195" y="196" textAnchor="middle">3 СТАТУСА</text>
+              <rect x="265" y="170" width="110" height="42" rx="2" /><text x="320" y="196" textAnchor="middle">1 КОНФЛИКТ</text>
+            </g>
+            {decisionOptions.map((option, index) => {
+              const y = 236 + index * 76;
+              const active = decision === option.id;
+              return (
+                <g key={option.id} className={`mobile-decision-route ${active ? "active" : ""}`} style={{ opacity: routes }}>
+                  <path d={`M195 149 V${y}`} pathLength="1" strokeDasharray="1" strokeDashoffset={1 - routes} />
+                  <g
+                    className="mobile-decision-option"
+                    tabIndex={0}
+                    role="button"
+                    onClick={() => setDecision(option.id)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") setDecision(option.id);
+                    }}
+                  >
+                    <rect x="49" y={y} width="292" height="60" rx="2" />
+                    <text className="mobile-decision-code" x="68" y={y + 25}>{option.code}</text>
+                    <text className="mobile-decision-note" x="68" y={y + 45}>{option.note}</text>
+                  </g>
+                </g>
+              );
+            })}
+            <g className="mobile-human-switch" style={{ opacity: handoff }}>
+              <rect x="49" y="472" width="292" height="76" rx="3" />
+              <text x="68" y="500">HUMAN GATE</text>
+              <line x1="78" y1="526" x2="312" y2="526" />
+              <circle cx={78 + handoff * 234} cy="526" r="14" />
+              <text className="mobile-switch-state" x="321" y="501" textAnchor="end">{selected.code}</text>
+            </g>
+            <g className="mobile-decision-output" style={{ opacity: output, transform: `translateY(${14 - output * 14}px)` }}>
+              <path d="M195 548 V584" />
+              <rect x="39" y="584" width="312" height="92" rx="2" />
+              <text x="195" y="613" textAnchor="middle">ПАКЕТ ПРОВЕРКИ</text>
+              <text className="mobile-output-copy" x="195" y="641" textAnchor="middle">7 вопросов · 3 риска</text>
+              <text className="mobile-output-copy" x="195" y="662" textAnchor="middle">1 следующий шаг</text>
             </g>
           </svg>
         </div>
