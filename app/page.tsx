@@ -432,6 +432,152 @@ function RealityCollisionStation() {
   );
 }
 
+const decisionOptions = [
+  { id: "stop", code: "STOP", note: "Закрыть гипотезу", x: 250 },
+  { id: "validate", code: "VALIDATE", note: "Проверить дальше", x: 500 },
+  { id: "proceed", code: "PROCEED", note: "Запускать решение", x: 750 },
+] as const;
+
+function HumanGateStation() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const frameRef = useRef<number | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [decision, setDecision] = useState<(typeof decisionOptions)[number]["id"]>("validate");
+
+  useEffect(() => {
+    const update = () => {
+      frameRef.current = null;
+      const section = sectionRef.current;
+      if (!section) return;
+      const rect = section.getBoundingClientRect();
+      const distance = Math.max(1, rect.height - window.innerHeight);
+      setProgress(Math.min(1, Math.max(0, -rect.top / distance)));
+    };
+    const requestUpdate = () => {
+      if (frameRef.current !== null) return;
+      frameRef.current = window.requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", requestUpdate, { passive: true });
+    window.addEventListener("resize", requestUpdate);
+    return () => {
+      window.removeEventListener("scroll", requestUpdate);
+      window.removeEventListener("resize", requestUpdate);
+      if (frameRef.current !== null) window.cancelAnimationFrame(frameRef.current);
+    };
+  }, []);
+
+  const intake = Math.min(1, progress / .28);
+  const routes = Math.min(1, Math.max(0, (progress - .2) / .34));
+  const handoff = Math.min(1, Math.max(0, (progress - .48) / .3));
+  const output = Math.min(1, Math.max(0, (progress - .72) / .2));
+  const phase = progress < .24 ? 0 : progress < .52 ? 1 : progress < .76 ? 2 : 3;
+  const phaseCopy = [
+    ["ПАКЕТ РЕШЕНИЯ", "Система собирает выводы трёх станций в один проверяемый пакет."],
+    ["ТРИ МАРШРУТА", "Закрыть гипотезу, продолжить проверку или перейти к реализации."],
+    ["HUMAN GATE", "Алгоритм показывает варианты и доказательства. Выбор остаётся за человеком."],
+    ["СЛЕДУЮЩИЙ ШАГ", "Решение превращено в конкретный план проверки, а не в очередной отчёт."],
+  ][phase];
+  const selected = decisionOptions.find((option) => option.id === decision)!;
+  const packetX = 76 + intake * 524;
+  const leverX = 487 + handoff * 226;
+
+  return (
+    <section className="scroll-pipeline human-gate-pipeline" id="decision" ref={sectionRef}>
+      <div className="scroll-pipeline-sticky">
+        <div className="pipeline-space" aria-hidden="true" />
+        <div className="pipeline-stage-copy">
+          <span>04 / 04</span>
+          <h2>Принять решение</h2>
+          <p>Система готовит варианты и основания. Человек выбирает, что делать с гипотезой дальше.</p>
+        </div>
+
+        <div className="human-gate-stage">
+          <svg className="human-gate-map" viewBox="0 0 1200 650" role="img" aria-label="Человек выбирает следующий шаг для проверенной гипотезы">
+            <defs>
+              <pattern id="human-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#10223a" strokeWidth="1" />
+              </pattern>
+              <filter id="human-blue-glow" x="-80%" y="-80%" width="260%" height="260%">
+                <feGaussianBlur stdDeviation="8" result="blur" /><feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+              </filter>
+            </defs>
+            <rect width="1200" height="650" fill="url(#human-grid)" opacity=".55" />
+            <path className="decision-intake-rail" d="M54 318 H532" />
+            <text className="decision-caption" x="62" y="290">ПЕРЕФОРМУЛИРОВАННАЯ ГИПОТЕЗА</text>
+
+            <g className="decision-packet" style={{ transform: `translateX(${packetX - 600}px)` }}>
+              <path d="M600 267 L642 301 L628 354 L600 380 L572 354 L558 301 Z" />
+              <text x="600" y="327" textAnchor="middle">H</text>
+            </g>
+
+            <g className="decision-core" style={{ opacity: Math.max(.22, intake) }}>
+              <rect x="520" y="232" width="160" height="166" rx="3" />
+              <text className="decision-core-kicker" x="600" y="258" textAnchor="middle">DECISION CORE</text>
+              <text className="decision-core-number" x="600" y="322" textAnchor="middle">3 → 1</text>
+              <text className="decision-core-note" x="600" y="354" textAnchor="middle">сигналы → решение</text>
+              <circle cx="600" cy="384" r="5" />
+            </g>
+
+            <g className="decision-facts" style={{ opacity: routes }}>
+              <g><rect x="252" y="186" width="170" height="46" rx="2" /><text x="271" y="214">4 ТОЧКИ ЗРЕНИЯ</text></g>
+              <g><rect x="515" y="158" width="170" height="46" rx="2" /><text x="534" y="186">3 СТАТУСА</text></g>
+              <g><rect x="778" y="186" width="170" height="46" rx="2" /><text x="797" y="214">1 КОНФЛИКТ</text></g>
+            </g>
+
+            {decisionOptions.map((option) => {
+              const active = option.id === decision;
+              return (
+                <g key={option.id} className={`decision-route ${active ? "active" : ""}`} style={{ opacity: routes }}>
+                  <path d={`M600 398 Q600 438 ${option.x + 100} 470`} pathLength="1" strokeDasharray="1" strokeDashoffset={1 - routes} />
+                  <g
+                    className="decision-option"
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`${option.code}: ${option.note}`}
+                    onClick={() => setDecision(option.id)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") setDecision(option.id);
+                    }}
+                  >
+                    <rect x={option.x} y="452" width="200" height="66" rx="2" />
+                    <text className="decision-code" x={option.x + 18} y="478">{option.code}</text>
+                    <text className="decision-note" x={option.x + 18} y="500">{option.note}</text>
+                  </g>
+                </g>
+              );
+            })}
+
+            <g className="human-switch" style={{ opacity: handoff }}>
+              <rect className="switch-panel" x="446" y="548" width="308" height="72" rx="3" />
+              <text x="468" y="576">HUMAN GATE</text>
+              <line x1="487" y1="598" x2="713" y2="598" />
+              <circle cx={leverX} cy="598" r="15" />
+              <text className="switch-state" x="730" y="603" textAnchor="end">{selected.code}</text>
+            </g>
+
+            <g className="decision-output" style={{ opacity: output, transform: `translateX(${22 - output * 22}px)` }}>
+              <path d="M754 584 H1120" />
+              <rect x="884" y="542" width="256" height="84" rx="2" />
+              <text className="output-kicker" x="904" y="568">ПАКЕТ ПРОВЕРКИ</text>
+              <text className="output-result" x="904" y="593">7 вопросов · 3 риска</text>
+              <text className="output-result" x="904" y="614">1 следующий шаг</text>
+            </g>
+          </svg>
+        </div>
+
+        <div className={`signal-phase phase-${phase}`} aria-live="polite">
+          <span>0{phase + 1} / 04</span>
+          <strong>{phaseCopy[0]}</strong>
+          <p>{phase === 2 ? `Выбрано: ${selected.code.toLowerCase()} — ${selected.note.toLowerCase()}.` : phaseCopy[1]}</p>
+        </div>
+        <div className="pipeline-scroll-hint" data-visible={progress < .06}><i /> КРУТИТЕ КОЛЕСО</div>
+        <div className="signal-progress" aria-hidden="true"><i style={{ width: `${progress * 100}%` }} /></div>
+      </div>
+    </section>
+  );
+}
+
 export default function Home() {
   return (
     <main>
@@ -470,6 +616,7 @@ export default function Home() {
         <Pipeline />
         <EvidenceStation />
         <RealityCollisionStation />
+        <HumanGateStation />
       </section>
 
       <section className="result grid-shell" id="result">

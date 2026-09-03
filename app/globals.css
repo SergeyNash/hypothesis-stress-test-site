@@ -330,6 +330,45 @@ h1 em, h2 em { color: var(--blue); font-style: normal; }
 .reframe-output rect { fill: rgba(11,3,13,.96); stroke: rgba(255,63,164,.78); stroke-width: 2; filter: drop-shadow(0 0 18px rgba(255,63,164,.18)); }
 .reframe-kicker { fill: var(--magenta); font: 700 11px ui-monospace, monospace; letter-spacing: .11em; }
 .reframe-copy { fill: #fff; font: 700 17px Arial, sans-serif; }
+
+/* Station 04: the system presents routes, the human opens the final gate. */
+.human-gate-pipeline { margin-top: 0; }
+.human-gate-stage { position: absolute; z-index: 2; left: 50%; top: 50%; width: min(1180px, 94vw); height: min(640px, 78vh); transform: translate(-50%, -42%); }
+.human-gate-map { width: 100%; height: 100%; overflow: visible; }
+.decision-intake-rail { fill: none; stroke: #286ca6; stroke-width: 2; stroke-dasharray: 8 12; animation: intake-flow 1.2s linear infinite; }
+.decision-caption { fill: #607f9d; font: 700 10px ui-monospace, monospace; letter-spacing: .12em; }
+.decision-packet { transform-box: fill-box; transform-origin: center; transition: transform .08s linear; filter: url(#human-blue-glow); }
+.decision-packet path { fill: #087ff5; stroke: #b8e6ff; stroke-width: 2; }
+.decision-packet text { fill: white; font: 800 18px ui-monospace, monospace; }
+.decision-core rect { fill: rgba(3,12,24,.97); stroke: #3184c6; stroke-width: 2; filter: drop-shadow(0 0 16px rgba(65,163,255,.24)); }
+.decision-core-kicker { fill: var(--blue); font: 700 10px ui-monospace, monospace; letter-spacing: .09em; }
+.decision-core-number { fill: white; font: 800 35px "Tektur", Arial, sans-serif; }
+.decision-core-note { fill: #8fa7bd; font: 12px Arial, sans-serif; }
+.decision-core circle { fill: var(--blue); filter: url(#human-blue-glow); animation: particle-pulse 1.5s ease-in-out infinite; }
+.decision-facts { transition: opacity .12s linear; }
+.decision-facts rect { fill: rgba(2,10,20,.92); stroke: #244c71; stroke-width: 1.5; }
+.decision-facts text { fill: #83bce9; font: 700 10px ui-monospace, monospace; letter-spacing: .08em; }
+.decision-route { transition: opacity .12s linear; }
+.decision-route > path { fill: none; stroke: #285b86; stroke-width: 2; transition: stroke-dashoffset .08s linear, stroke .2s ease; }
+.decision-route.active > path { stroke: var(--blue); stroke-width: 3; filter: url(#human-blue-glow); }
+.decision-option { cursor: pointer; outline: none; }
+.decision-option rect { fill: rgba(3,12,24,.96); stroke: #2b4e6d; stroke-width: 2; transition: stroke .2s ease, filter .2s ease, fill .2s ease; }
+.decision-option:hover rect, .decision-option:focus-visible rect { stroke: #8ed3ff; }
+.decision-route.active .decision-option rect { fill: rgba(8,127,245,.12); stroke: var(--blue); stroke-width: 3; filter: drop-shadow(0 0 15px rgba(65,163,255,.35)); }
+.decision-code { fill: #8798aa; font: 800 13px ui-monospace, monospace; letter-spacing: .08em; }
+.decision-route.active .decision-code { fill: var(--blue); }
+.decision-note { fill: #d7e4ef; font: 13px Arial, sans-serif; }
+.human-switch { transition: opacity .14s linear; }
+.switch-panel { fill: rgba(2,10,20,.97); stroke: #326993; stroke-width: 2; }
+.human-switch text { fill: #91b7d8; font: 700 10px ui-monospace, monospace; letter-spacing: .1em; }
+.human-switch line { stroke: #355774; stroke-width: 6; stroke-linecap: square; }
+.human-switch circle { fill: white; stroke: var(--blue); stroke-width: 4; filter: url(#human-blue-glow); transition: cx .08s linear; }
+.human-switch .switch-state { fill: var(--blue); font-size: 12px; }
+.decision-output { transform-box: fill-box; transform-origin: center; transition: opacity .12s linear, transform .12s linear; }
+.decision-output > path { fill: none; stroke: var(--blue); stroke-width: 3; stroke-dasharray: 7 10; animation: intake-flow 1s linear infinite; filter: url(#human-blue-glow); }
+.decision-output rect { fill: rgba(3,14,26,.98); stroke: var(--blue); stroke-width: 2; filter: drop-shadow(0 0 18px rgba(65,163,255,.25)); }
+.output-kicker { fill: var(--blue); font: 700 10px ui-monospace, monospace; letter-spacing: .11em; }
+.output-result { fill: #f2f9ff; font: 700 15px Arial, sans-serif; }
 .signal-rail { fill: none; stroke: #173554; stroke-width: 2; }
 .signal-cluster { transform-box: fill-box; transform-origin: center; transition: filter .22s ease, opacity .22s ease; outline: none; cursor: crosshair; }
 .signal-stage:has(.signal-cluster.focused) .signal-cluster:not(.focused) { opacity: .3; filter: grayscale(.65); }
@@ -491,6 +530,7 @@ footer a { display: flex; align-items: center; gap: 7px; color: #a3afbd; }
   .signal-stage, .perspective-stage { top: 55%; width: 154vw; height: 58vh; transform: translate(-50%, -35%); }
   .evidence-stage { top: 55%; width: 164vw; height: 60vh; transform: translate(-50%, -34%); }
   .collision-stage { top: 55%; width: 166vw; height: 60vh; transform: translate(-50%, -34%); }
+  .human-gate-stage { top: 55%; width: 172vw; height: 61vh; transform: translate(-50%, -34%); }
   .signal-phase { top: auto; left: 22px; right: 22px; bottom: 58px; width: auto; padding: 13px 15px; }
   .signal-phase p { font-size: 13px; }
   .source-chip { bottom: 5%; min-height: 34px; padding: 0 9px; font-size: 9px; }
