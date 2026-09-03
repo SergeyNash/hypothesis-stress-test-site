@@ -167,6 +167,133 @@ function Pipeline() {
   );
 }
 
+const evidenceRows = [
+  { id: "user", role: "ПОЛЬЗОВАТЕЛЬ", claim: "Проблема регулярна", source: "7 интервью", result: "ПОДТВЕРЖДЕНО", tone: "confirmed" },
+  { id: "business", role: "БИЗНЕС", claim: "Клиент готов платить", source: "рынок / КП", result: "ОПРОВЕРГНУТО", tone: "refuted" },
+  { id: "tech", role: "РЕАЛИЗАЦИЯ", claim: "Данных достаточно", source: "внутренние данные", result: "НЕТ ДАННЫХ", tone: "missing" },
+  { id: "risk", role: "РИСКИ", claim: "Ограничение известно", source: "архитектура", result: "ПОДТВЕРЖДЕНО", tone: "confirmed" },
+] as const;
+
+function EvidenceStation() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const frameRef = useRef<number | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [activeRow, setActiveRow] = useState<string | null>(null);
+
+  useEffect(() => {
+    const update = () => {
+      frameRef.current = null;
+      const section = sectionRef.current;
+      if (!section) return;
+      const rect = section.getBoundingClientRect();
+      const distance = Math.max(1, rect.height - window.innerHeight);
+      setProgress(Math.min(1, Math.max(0, -rect.top / distance)));
+    };
+    const requestUpdate = () => {
+      if (frameRef.current !== null) return;
+      frameRef.current = window.requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", requestUpdate, { passive: true });
+    window.addEventListener("resize", requestUpdate);
+    return () => {
+      window.removeEventListener("scroll", requestUpdate);
+      window.removeEventListener("resize", requestUpdate);
+      if (frameRef.current !== null) window.cancelAnimationFrame(frameRef.current);
+    };
+  }, []);
+
+  const feed = Math.min(1, progress / .38);
+  const scan = Math.min(1, Math.max(0, (progress - .28) / .4));
+  const reveal = Math.min(1, Math.max(0, (progress - .58) / .3));
+  const phase = progress < .3 ? 0 : progress < .65 ? 1 : 2;
+  const phaseCopy = [
+    ["УТВЕРЖДЕНИЯ", "Четыре вывода первой станции входят в проверочный контур."],
+    ["ПОИСК СИГНАЛОВ", "Система сопоставляет каждое утверждение с конкретным источником."],
+    ["ВЕРДИКТ", "Подтверждение, опровержение и пробел в данных видны одновременно."],
+  ][phase];
+  const selected = evidenceRows.find((row) => row.id === activeRow);
+
+  return (
+    <section className="scroll-pipeline evidence-pipeline" id="evidence" ref={sectionRef}>
+      <div className="scroll-pipeline-sticky">
+        <div className="pipeline-space" aria-hidden="true" />
+        <div className="pipeline-stage-copy">
+          <span>02 / 04</span>
+          <h2>Сверить с фактами</h2>
+          <p>Каждое утверждение проходит через источник данных и получает отдельный статус.</p>
+        </div>
+
+        <div className="evidence-stage">
+          <svg className="evidence-map" viewBox="0 0 1200 620" role="img" aria-label="Утверждения проходят через сканер фактов">
+            <defs>
+              <pattern id="evidence-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#10223a" strokeWidth="1" />
+              </pattern>
+              <filter id="evidence-glow" x="-80%" y="-80%" width="260%" height="260%">
+                <feGaussianBlur stdDeviation="7" result="blur" />
+                <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+              </filter>
+            </defs>
+            <rect width="1200" height="620" fill="url(#evidence-grid)" opacity=".55" />
+            <path className="evidence-rail" d="M60 342 H1140" />
+            <g className="scanner" style={{ opacity: .35 + scan * .65 }}>
+              <rect x="536" y="142" width="128" height="400" rx="4" />
+              <path d="M560 166 H640 M560 518 H640" />
+              <line x1="600" y1="182" x2="600" y2="502" />
+              <text x="600" y="128" textAnchor="middle">EVIDENCE SCAN</text>
+              <rect className="scan-beam" x="548" y={190 + scan * 290} width="104" height="3" />
+            </g>
+
+            {evidenceRows.map((row, index) => {
+              const y = 222 + index * 82;
+              const x = 78 + feed * 392;
+              const isActive = activeRow === row.id;
+              return (
+                <g key={row.id} className={`evidence-row ${row.tone} ${isActive ? "active" : activeRow ? "muted" : ""}`}>
+                  <g
+                    className="claim-card"
+                    style={{ transform: `translateX(${x - 78}px)` }}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`${row.role}: ${row.claim}`}
+                    onPointerEnter={() => setActiveRow(row.id)}
+                    onPointerLeave={() => setActiveRow(null)}
+                    onFocus={() => setActiveRow(row.id)}
+                    onBlur={() => setActiveRow(null)}
+                    onClick={() => setActiveRow(activeRow === row.id ? null : row.id)}
+                  >
+                    <rect x="78" y={y - 27} width="330" height="54" rx="2" />
+                    <text className="claim-role" x="96" y={y - 6}>{row.role}</text>
+                    <text className="claim-text" x="96" y={y + 15}>{row.claim}</text>
+                  </g>
+                  <path className="evidence-link" d={`M664 ${y} H850`} pathLength="1" strokeDasharray="1" strokeDashoffset={1 - reveal} />
+                  <circle className="evidence-pulse" cx={664 + 186 * reveal} cy={y} r="4" style={{ opacity: reveal }} />
+                  <g className="verdict-card" style={{ opacity: reveal, transform: `translateX(${18 - reveal * 18}px)` }}>
+                    <rect x="850" y={y - 27} width="270" height="54" rx="2" />
+                    <text className="source-text" x="868" y={y - 7}>{row.source}</text>
+                    <text className="verdict-text" x="868" y={y + 16}>{row.result}</text>
+                  </g>
+                </g>
+              );
+            })}
+            <text className="evidence-caption" x="86" y="574">УТВЕРЖДЕНИЯ</text>
+            <text className="evidence-caption" x="868" y="574" style={{ opacity: reveal }}>ДОКАЗАТЕЛЬСТВА</text>
+          </svg>
+        </div>
+
+        <div className={`signal-phase phase-${phase}`} aria-live="polite">
+          <span>0{phase + 1} / 03</span>
+          <strong>{phaseCopy[0]}</strong>
+          <p>{selected ? `${selected.claim} → ${selected.source}: ${selected.result.toLowerCase()}.` : phaseCopy[1]}</p>
+        </div>
+        <div className="pipeline-scroll-hint" data-visible={progress < .06}><i /> КРУТИТЕ КОЛЕСО</div>
+        <div className="signal-progress" aria-hidden="true"><i style={{ width: `${progress * 100}%` }} /></div>
+      </div>
+    </section>
+  );
+}
+
 export default function Home() {
   return (
     <main>
@@ -203,6 +330,7 @@ export default function Home() {
           </div>
         </div>
         <Pipeline />
+        <EvidenceStation />
       </section>
 
       <section className="result grid-shell" id="result">
